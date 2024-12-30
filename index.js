@@ -21,6 +21,22 @@ app.use("/api", employeeRoutes);
 
 let currentSSID = "";
 const requiredSSID = process.env.SSID;
+let server;
+
+const startServer = () => {
+  const PORT = 4000;
+  server = app.listen(PORT, () => {
+    console.log(`Server running on Port ${PORT}`);
+  });
+};
+
+const stopServer = () => {
+  if (server) {
+    server.close(() => {
+      console.log("Server stopped.");
+    });
+  }
+};
 
 const checkNetworkAndRestart = () => {
   exec("iwgetid -r", (error, stdout, stderr) => {
@@ -38,13 +54,11 @@ const checkNetworkAndRestart = () => {
       console.log(`Connected to SSID: ${ssid}`);
 
       if (ssid === requiredSSID) {
-        const PORT = 4000;
-        app.listen(PORT, () => {
-          console.log(`Server running on Port ${PORT}`);
-        });
+        stopServer();
+        startServer();
       } else {
         console.error(`Server can only run on ${requiredSSID} network.`);
-        process.exit(1);
+        stopServer();
       }
     }
   });
